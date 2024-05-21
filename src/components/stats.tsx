@@ -1,38 +1,54 @@
+import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/20/solid'
 
-
-const stats = [
-  { name: 'Revenue', value: '$405,091.00', change: '+4.75%', changeType: 'positive' },
-  { name: 'Overdue invoices', value: '$12,787.00', change: '+54.02%', changeType: 'negative' },
-  { name: 'Outstanding invoices', value: '$245,988.00', change: '-1.39%', changeType: 'positive' },
-  { name: 'Expenses', value: '$30,156.00', change: '+10.18%', changeType: 'negative' },
-]
-
+interface Stats {
+  name: string
+  stat: string
+  previousStat: string
+  change: string
+  changeType: string
+}
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Stats() {
+export default function Stats({ stats }: { stats: Stats[] }) {
   return (
-    <dl className="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => (
-        <div
-          key={stat.name}
-          className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8"
-        >
-          <dt className="text-sm font-medium leading-6 text-gray-500">{stat.name}</dt>
-          <dd
-            className={classNames(
-              stat.changeType === 'negative' ? 'text-rose-600' : 'text-gray-700',
-              'text-xs font-medium'
-            )}
-          >
-            {stat.change}
-          </dd>
-          <dd className="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">
-            {stat.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <div>
+      <dl className="mt-5 grid grid-cols-1 divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow md:grid-cols-3 md:divide-x md:divide-y-0">
+        {stats.map((item) => (
+          <div key={item.name} className="px-4 py-5 sm:p-6">
+            <dt className="text-base font-normal text-gray-900">{item.name}</dt>
+            <dd className="mt-1 flex items-baseline justify-between md:block lg:flex">
+              <div className="flex items-baseline text-2xl font-semibold text-indigo-600">
+                {item.stat}
+                <span className="ml-2 text-sm font-medium text-gray-500">from {item.previousStat}</span>
+              </div>
+
+              <div
+                className={classNames(
+                  item.changeType === 'increase' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
+                  'inline-flex items-baseline rounded-full px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0'
+                )}
+              >
+                {item.changeType === 'increase' ? (
+                  <ArrowUpIcon
+                    className="-ml-1 mr-0.5 h-5 w-5 flex-shrink-0 self-center text-green-500"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <ArrowDownIcon
+                    className="-ml-1 mr-0.5 h-5 w-5 flex-shrink-0 self-center text-red-500"
+                    aria-hidden="true"
+                  />
+                )}
+
+                <span className="sr-only"> {item.changeType === 'increase' ? 'Increased' : 'Decreased'} by </span>
+                {item.change}
+              </div>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   )
 }
