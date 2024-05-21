@@ -1,17 +1,22 @@
 import ChartArea from '@/components/chart';
 import Stats from '@/components/stats';
 import { getStakingInfoForAddress } from '@/utils/solanaRpc';
+import { InflationReward } from '@solana/web3.js';
 import { Card } from '@tremor/react';
 
 /**
  * TODO
  * - add loading spinners for each component
  * - add context/offline storage to avoid reloading data on save
- * - 
+ * - add date for epoch?
+ * - add dollar values
+ * - add total rewards earned in SOL/dollars
  */
 
+const SOL_ADDRESS = "FqPoW88rHrwnuTLaVYPaDKG8TdQuKfE5NdJuUEzERPwD"
+
 async function getData() {
-  const res = await getStakingInfoForAddress("FqPoW88rHrwnuTLaVYPaDKG8TdQuKfE5NdJuUEzERPwD")
+  const res = await getStakingInfoForAddress(SOL_ADDRESS)
   // The return value is *not* serialized
   // You can return Date, Map, Set, etc.
   return res
@@ -20,6 +25,120 @@ async function getData() {
 export default async function Home() {
   // const data = await getData()
   const data = [
+    {
+      "address": "2onYKy72v2vaEPufkaSp3uxcfKKocuabSbgzLXMxhVnu",
+      "balance": 201.488202154,
+      "stake": 201.356734339,
+      "validator": "he1iusunGwqrNtafDtLdhsUQDFvo13z9sUa36PauBtk",
+      "activationEpoch": "602",
+      "rewards": [
+        {
+          "amount": 0.090063767,
+          "commission": 0,
+          "effectiveSlot": 260928000,
+          "epoch": 603,
+          "postBalance": 200.090063767
+        },
+        {
+          "amount": 0.089477654,
+          "commission": 0,
+          "effectiveSlot": 261360000,
+          "epoch": 604,
+          "postBalance": 200.185356017
+        },
+        {
+          "amount": 0.089783824,
+          "commission": 0,
+          "effectiveSlot": 261792000,
+          "epoch": 605,
+          "postBalance": 200.281575135
+        },
+        {
+          "amount": 0.090264337,
+          "commission": 0,
+          "effectiveSlot": 262224008,
+          "epoch": 606,
+          "postBalance": 200.37876902
+        },
+        {
+          "amount": 0.09100329,
+          "commission": 0,
+          "effectiveSlot": 262656000,
+          "epoch": 607,
+          "postBalance": 200.480151887
+        },
+        {
+          "amount": 0.09078646,
+          "commission": 0,
+          "effectiveSlot": 263088012,
+          "epoch": 608,
+          "postBalance": 200.576786055
+        },
+        {
+          "amount": 0.092438953,
+          "commission": 0,
+          "effectiveSlot": 263520008,
+          "epoch": 609,
+          "postBalance": 200.675536353
+        },
+        {
+          "amount": 0.088668079,
+          "commission": 0,
+          "effectiveSlot": 263952000,
+          "epoch": 610,
+          "postBalance": 200.77134244
+        },
+        {
+          "amount": 0.091025614,
+          "commission": 0,
+          "effectiveSlot": 264384000,
+          "epoch": 611,
+          "postBalance": 200.872207578
+        },
+        {
+          "amount": 0.091093658,
+          "commission": 0,
+          "effectiveSlot": 264816004,
+          "epoch": 612,
+          "postBalance": 200.973821078
+        },
+        {
+          "amount": 0.091220555,
+          "commission": 0,
+          "effectiveSlot": 265248012,
+          "epoch": 613,
+          "postBalance": 201.07527535
+        },
+        {
+          "amount": 0.090667776,
+          "commission": 0,
+          "effectiveSlot": 265680000,
+          "epoch": 614,
+          "postBalance": 201.173949078
+        },
+        {
+          "amount": 0.090908634,
+          "commission": 0,
+          "effectiveSlot": 266112008,
+          "epoch": 615,
+          "postBalance": 201.275816039
+        },
+        {
+          "amount": 0.090875512,
+          "commission": 0,
+          "effectiveSlot": 266544000,
+          "epoch": 616,
+          "postBalance": 201.380113893
+        },
+        {
+          "amount": 0.090739106,
+          "commission": 0,
+          "effectiveSlot": 266976004,
+          "epoch": 617,
+          "postBalance": 201.479826962
+        }
+      ]
+    },
     {
       "address": "GcJhRHeuATxQdEq2HNWKSWFT6dJb1nccywcvE4y44Dxq",
       "balance": 14.001082548,
@@ -49,14 +168,68 @@ export default async function Home() {
           "postBalance": 14.000500374
         }
       ]
+    },
+    {
+      "address": "EFr9hB6nnQMeLVeV3AgvWpfoTLzS9v2SjNKogSyjn3rZ",
+      "balance": 1.001504852,
+      "stake": 0.999069294,
+      "validator": "he1iusunGwqrNtafDtLdhsUQDFvo13z9sUa36PauBtk",
+      "activationEpoch": "614",
+      "rewards": [
+        {
+          "amount": 0.00045106,
+          "commission": 0,
+          "effectiveSlot": 266112008,
+          "epoch": 615,
+          "postBalance": 1.00045106
+        },
+        {
+          "amount": 0.000450895,
+          "commission": 0,
+          "effectiveSlot": 266544000,
+          "epoch": 616,
+          "postBalance": 1.000968552
+        },
+        {
+          "amount": 0.000450219,
+          "commission": 0,
+          "effectiveSlot": 266976004,
+          "epoch": 617,
+          "postBalance": 1.001463297
+        }
+      ]
     }
-  ]
+  ].reduce((a, b) => {
+    const rewards = [...a.rewards, ...b.rewards]
+      .reduce((acc, reward) => {
+        const existingReward = acc.find(r => r.epoch === reward.epoch);
+        if (existingReward) {
+          existingReward.amount += reward.amount;
+          existingReward.commission += reward.commission;
+          existingReward.effectiveSlot += reward.effectiveSlot;
+          existingReward.postBalance += reward.postBalance;
+        } else {
+          acc.push({ ...reward });
+        }
+        return acc;
+      }, [] as InflationReward[]);
+
+    return {
+      "address": SOL_ADDRESS,
+      "balance": a.balance + b.balance,
+      "stake": a.stake + b.stake,
+      "validator": a.validator,
+      "activationEpoch": Math.min(parseInt(a.activationEpoch), parseInt(b.activationEpoch)).toString(),
+      "rewards": rewards
+    }
+  });
+
 
   console.log(JSON.stringify(data, null, 4))
 
   return (
     <>
-      {data.map(stakingInfo => {
+      {[data].map(stakingInfo => {
         const previousBalance = "100"
         const balance = stakingInfo.balance.toString()
         const balanceChange = "0.1%"

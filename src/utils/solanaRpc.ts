@@ -112,7 +112,7 @@ export async function getStakingInfoForAddress(address: string): Promise<Staking
   stakeAccounts.forEach(sa => console.log(sa.pubkey.toString()))
 
 
-  // const stakingInfos = await Promise.all(stakeAccounts.map(async address => await getInfoForStakingAccount(address.pubkey.toString())))
-  // return stakingInfos
-  return [await getInfoForStakingAccount("GcJhRHeuATxQdEq2HNWKSWFT6dJb1nccywcvE4y44Dxq")]
+  const stakingInfos = await Promise.all(stakeAccounts.map(async address => await getInfoForStakingAccount(address.pubkey.toString())))
+  return stakingInfos
+  // return [await getInfoForStakingAccount("GcJhRHeuATxQdEq2HNWKSWFT6dJb1nccywcvE4y44Dxq")]
 }
