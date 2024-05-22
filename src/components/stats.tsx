@@ -1,4 +1,3 @@
-import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/20/solid'
 
 interface Stats {
   name: string
@@ -21,10 +20,10 @@ export default function Stats({ stats }: { stats: Stats[] }) {
             <dd className="mt-1 flex items-baseline justify-between md:block lg:flex">
               <div className="flex items-baseline text-2xl font-semibold text-indigo-600">
                 {item.stat}
-                <span className="ml-2 text-sm font-medium text-gray-500">from {item.previousStat}</span>
+                <span className="ml-2 text-sm font-medium text-gray-500">${item.previousStat}</span>
               </div>
 
-              <div
+              {/* <div
                 className={classNames(
                   item.changeType === 'increase' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
                   'inline-flex items-baseline rounded-full px-2.5 py-0.5 text-sm font-medium md:mt-2 lg:mt-0'
@@ -44,7 +43,7 @@ export default function Stats({ stats }: { stats: Stats[] }) {
 
                 <span className="sr-only"> {item.changeType === 'increase' ? 'Increased' : 'Decreased'} by </span>
                 {item.change}
-              </div>
+              </div> */}
             </dd>
           </div>
         ))}

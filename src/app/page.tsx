@@ -9,8 +9,6 @@ import { Card } from '@tremor/react';
  * - add loading spinners for each component
  * - add context/offline storage to avoid reloading data on save
  * - add date for epoch?
- * - add dollar values
- * - add total rewards earned in SOL/dollars
  */
 
 const SOL_ADDRESS = "FqPoW88rHrwnuTLaVYPaDKG8TdQuKfE5NdJuUEzERPwD"
@@ -22,7 +20,52 @@ async function getData() {
   return res
 }
 
+/**
+ * {
+ *   "status": {
+ *       "timestamp": "2024-05-22T07:25:24.852Z",
+ *       "error_code": 0,
+ *       "error_message": null,
+ *       "elapsed": 41,
+ *       "credit_count": 1,
+ *       "notice": null
+ *   },
+ *   "data": {
+ *       "id": 5426,
+ *       "symbol": "SOL",
+ *       "name": "Solana",
+ *       "amount": 1,
+ *       "last_updated": "2024-05-22T07:23:00.000Z",
+ *       "quote": {
+ *           "USD": {
+ *               "price": 180.1065648226929,
+ *               "last_updated": "2024-05-22T07:23:00.000Z"
+ *           }
+ *       }
+ *   }
+ *
+ */
+async function getPricingData() {
+
+  const res = await fetch('https://pro-api.coinmarketcap.com/v2/tools/price-conversion?amount=1&id=5426', {
+    method: 'GET',
+    headers: {
+      'X-CMC_PRO_API_KEY': '06a352d7-65e0-463e-8a8e-f12804a53fe7',
+    },
+  })
+
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error('Failed to fetch data')
+  }
+
+  const responseJson = await res.json()
+
+  return responseJson.data.quote.USD.price
+}
+
 export default async function Home() {
+  const solPriceUsd = await getPricingData()
   // const data = await getData()
   const data = [
     {
@@ -227,12 +270,22 @@ export default async function Home() {
 
   console.log(JSON.stringify(data, null, 4))
 
+  const totalRewards = data.rewards.reduce((acc, reward) => acc + reward.amount, 0)
+  const latestReward = data.rewards.reduce(
+    (prev, current) => {
+      return prev.epoch > current.epoch ? prev : current
+    }
+  );
+
   return (
     <>
       {[data].map(stakingInfo => {
         const previousBalance = "100"
-        const balance = stakingInfo.balance.toString()
+        const balance = stakingInfo.balance.toFixed(2).toString()
         const balanceChange = "0.1%"
+        const balanceUsd = (stakingInfo.balance * solPriceUsd).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        const totalRewardsUsd = (totalRewards * solPriceUsd).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        const latestRewardUsd = (latestReward.amount * solPriceUsd).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
         return (
           <>
             <Card >
@@ -242,9 +295,9 @@ export default async function Home() {
               </p>
               <Stats
                 stats={[
-                  { name: 'SOL balance', stat: balance, previousStat: previousBalance, change: balanceChange, changeType: 'increase' },
-                  { name: 'Avg. Open Rate', stat: '58.16%', previousStat: '56.14%', change: '2.02%', changeType: 'increase' },
-                  { name: 'Avg. Click Rate', stat: '24.57%', previousStat: '28.62%', change: '4.05%', changeType: 'decrease' },
+                  { name: 'SOL balance', stat: balance, previousStat: balanceUsd, change: balanceChange, changeType: 'increase' },
+                  { name: 'Total rewards', stat: totalRewards.toFixed(2).toString(), previousStat: totalRewardsUsd, change: '2.02%', changeType: 'increase' },
+                  { name: 'Latest reward', stat: latestReward.amount.toFixed(2).toString(), previousStat: latestRewardUsd, change: '4.05%', changeType: 'decrease' },
                 ]}
               />
 
