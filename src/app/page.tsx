@@ -1,6 +1,6 @@
 import ChartArea from '@/components/chart';
+import Search from '@/components/search';
 import Stats from '@/components/stats';
-import { getStakingInfoForAddress } from '@/utils/solanaRpc';
 import { InflationReward } from '@solana/web3.js';
 import { Card } from '@tremor/react';
 
@@ -13,38 +13,6 @@ import { Card } from '@tremor/react';
 
 const SOL_ADDRESS = "FqPoW88rHrwnuTLaVYPaDKG8TdQuKfE5NdJuUEzERPwD"
 
-async function getData() {
-  const res = await getStakingInfoForAddress(SOL_ADDRESS)
-  // The return value is *not* serialized
-  // You can return Date, Map, Set, etc.
-  return res
-}
-
-/**
- * {
- *   "status": {
- *       "timestamp": "2024-05-22T07:25:24.852Z",
- *       "error_code": 0,
- *       "error_message": null,
- *       "elapsed": 41,
- *       "credit_count": 1,
- *       "notice": null
- *   },
- *   "data": {
- *       "id": 5426,
- *       "symbol": "SOL",
- *       "name": "Solana",
- *       "amount": 1,
- *       "last_updated": "2024-05-22T07:23:00.000Z",
- *       "quote": {
- *           "USD": {
- *               "price": 180.1065648226929,
- *               "last_updated": "2024-05-22T07:23:00.000Z"
- *           }
- *       }
- *   }
- *
- */
 async function getPricingData() {
 
   const res = await fetch('https://pro-api.coinmarketcap.com/v2/tools/price-conversion?amount=1&id=5426', {
@@ -278,7 +246,11 @@ export default async function Home() {
   );
 
   return (
-    <>
+    <main
+      // className="p-5"
+      className="p-4 items-center content-center gap-4"
+    // items-center
+    >
       {[data].map(stakingInfo => {
         const previousBalance = "100"
         const balance = stakingInfo.balance.toFixed(2).toString()
@@ -287,7 +259,11 @@ export default async function Home() {
         const totalRewardsUsd = (totalRewards * solPriceUsd).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
         const latestRewardUsd = (latestReward.amount * solPriceUsd).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
         return (
-          <>
+          <div
+            className="items-center content-center m-2"
+          >
+
+            <Search />
             <Card >
               <h3 className="text-tremor-default text-tremor-content dark:text-dark-tremor-content">staking account address</h3>
               <p className="text-tremor-metric text-tremor-content-strong dark:text-dark-tremor-content-strong font-semibold">
@@ -313,12 +289,12 @@ export default async function Home() {
                 index={'epoch'}
               />
             </Card>
-          </>
+          </div>
         )
       })
 
       }
-    </>
+    </main>
   )
 
 }
