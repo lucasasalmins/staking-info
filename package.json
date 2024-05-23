@@ -15,6 +15,7 @@
     "@remixicon/react": "^4.2.0",
     "@solana/web3.js": "^1.91.8",
     "@tremor/react": "^3.17.2",
+    "axios": "^1.7.2",
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18"

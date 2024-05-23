@@ -30,12 +30,12 @@ async function getStakingAccounts(address: string) {
   return stakeAccounts
 }
 
-interface StakingInfo {
+export interface StakingInfo {
   address: string
   balance: number
   stake: number
   validator: string
-  activationEpoch: number
+  activationEpoch: string
   rewards: InflationReward[]
 }
 
@@ -112,7 +112,43 @@ export async function getStakingInfoForAddress(address: string): Promise<Staking
   stakeAccounts.forEach(sa => console.log(sa.pubkey.toString()))
 
 
+  // const stakingInfos = stakeAccounts
+  //   .map(address => () => getInfoForStakingAccount(address.pubkey.toString()))
+  //   .reduce((p, fn) => p.then(fn), Promise.resolve<StakingInfo[]>([] as StakingInfo[]))
+
+  // // await Promise.all(stakeAccounts.map(async address => await getInfoForStakingAccount(address.pubkey.toString())))
+  // return stakingInfos
+  // // return [await getInfoForStakingAccount("GcJhRHeuATxQdEq2HNWKSWFT6dJb1nccywcvE4y44Dxq")]
+
+  // TODO: this doesn't rate limit when using VPN
   const stakingInfos = await Promise.all(stakeAccounts.map(async address => await getInfoForStakingAccount(address.pubkey.toString())))
   return stakingInfos
-  // return [await getInfoForStakingAccount("GcJhRHeuATxQdEq2HNWKSWFT6dJb1nccywcvE4y44Dxq")]
+}
+
+
+export function aggregateRewards(data: StakingInfo[], address: string): StakingInfo {
+  return data.reduce((a, b) => {
+    const rewards = [...a.rewards, ...b.rewards]
+      .reduce((acc, reward) => {
+        const existingReward = acc.find(r => r.epoch === reward.epoch);
+        if (existingReward) {
+          existingReward.amount += reward.amount;
+          existingReward.commission += reward.commission;
+          existingReward.effectiveSlot += reward.effectiveSlot;
+          existingReward.postBalance += reward.postBalance;
+        } else {
+          acc.push({ ...reward });
+        }
+        return acc;
+      }, [] as InflationReward[]);
+
+    return {
+      address,
+      balance: a.balance + b.balance,
+      stake: a.stake + b.stake,
+      validator: a.validator,
+      activationEpoch: Math.min(parseInt(a.activationEpoch), parseInt(b.activationEpoch)).toString(),
+      rewards: rewards
+    }
+  });
 }
