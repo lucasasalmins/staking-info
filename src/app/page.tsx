@@ -25,15 +25,6 @@ import Details from '@/components/Details';
  * - 
  */
 
-const SOL_ADDRESS = "FqPoW88rHrwnuTLaVYPaDKG8TdQuKfE5NdJuUEzERPwD"
-
-// async function getData() {
-//   const res = await getStakingInfoForAddress("FqPoW88rHrwnuTLaVYPaDKG8TdQuKfE5NdJuUEzERPwD")
-//   // The return value is *not* serialized
-//   // You can return Date, Map, Set, etc.
-//   return res
-// }
-
 async function getPricingData() {
 
   const res = await fetch('https://pro-api.coinmarketcap.com/v2/tools/price-conversion?amount=1&id=5426', {
