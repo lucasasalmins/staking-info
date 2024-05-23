@@ -3,6 +3,7 @@ import Details from '@/components/Details';
 /**
  * TODO
  * - add "refresh data button"
+ * - add logs to the UI when loading data
  * - split rewards into per day/week/month/year
  * - add titles to chart axis
  * - add loading spinners for each component

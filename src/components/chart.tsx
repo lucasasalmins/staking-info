@@ -3,7 +3,7 @@
 import { AreaChart } from '@tremor/react';
 
 
-const valueFormatter = function (number) {
+const valueFormatter = function (number: number) {
   return 'SOL ' + new Intl.NumberFormat('us').format(number).toString();
 };
 

@@ -121,6 +121,7 @@ export async function getStakingInfoForAddress(address: string): Promise<Staking
   // // return [await getInfoForStakingAccount("GcJhRHeuATxQdEq2HNWKSWFT6dJb1nccywcvE4y44Dxq")]
 
   // TODO: this doesn't rate limit when using VPN
+  // try sleeping after 1 sec, https://github.com/hodgerpodger/staketaxcsv/commit/5e7678f16afa520b822c4ed8c7462125e18dcfe0
   const stakingInfos = await Promise.all(stakeAccounts.map(async address => await getInfoForStakingAccount(address.pubkey.toString())))
   return stakingInfos
 }
@@ -133,7 +134,7 @@ export function aggregateRewards(data: StakingInfo[], address: string): StakingI
         const existingReward = acc.find(r => r.epoch === reward.epoch);
         if (existingReward) {
           existingReward.amount += reward.amount;
-          existingReward.commission += reward.commission;
+          // existingReward.commission += reward.commission;
           existingReward.effectiveSlot += reward.effectiveSlot;
           existingReward.postBalance += reward.postBalance;
         } else {
