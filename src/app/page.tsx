@@ -8,6 +8,11 @@ import Details from '@/components/Details';
  * - add titles to chart axis
  * - add loading spinners for each component
  * 
+ * - rate limiting
+ *  - takes a long time, need to rate limit
+ *  - probably need to persist and only look up latest rewards when refreshing
+ *  - first load can take time, that's ok
+ * 
  * - forecast earnings
  * - add price appreciation
  * 

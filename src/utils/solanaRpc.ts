@@ -9,6 +9,7 @@ import {
 const STAKE_PROGRAM_ID = new PublicKey('Stake11111111111111111111111111111111111111');
 const CONNECTION = new Connection('https://api.mainnet-beta.solana.com');
 const LAMPORTS_PER_SOL = 1000000000
+const delay = (ms: number = 1000) => new Promise(resolve => setTimeout(resolve, ms))
 
 async function getStakingAccounts(address: string) {
   const publicKey = new PublicKey(address)
@@ -41,47 +42,30 @@ export interface StakingInfo {
 
 async function getInfoForStakingAccount(address: string): Promise<StakingInfo> {
   console.log(`---------------------------------------------------------------`)
-  console.log(`looking up info for ${address}`)
+  console.log(`[getInfoForStakingAccount]: looking up info for ${address}`)
   const publicKey = new PublicKey(address)
-
 
   const parsedAccountInfo = await CONNECTION.getParsedAccountInfo(publicKey)
   const balance = parsedAccountInfo.value!.lamports / LAMPORTS_PER_SOL
-  const stakeActivationData = await CONNECTION.getStakeActivation(publicKey)
-
-  // console.log(`stakeActivationData: ${JSON.stringify(stakeActivationData)}`)
-  // console.log(parsedAccountInfo)
-  // console.log(`account balance: ${balance} SOL`)
-
   const accountData: ParsedAccountData = parsedAccountInfo.value!.data as ParsedAccountData
-  // console.log(JSON.stringify(accountData.parsed, null, 4))
-
   const stakeInfo = accountData.parsed.info.stake
   const stake = stakeInfo.delegation.stake / LAMPORTS_PER_SOL
   const validator = stakeInfo.delegation.voter
   const activationEpoch = stakeInfo.delegation.activationEpoch
 
-  // console.log(`stakeInfo: ${JSON.stringify(stakeInfo)}`)
-  // console.log(`stake: ${stake}`)
-  // console.log(`validator: ${validator}`)
-  // console.log(`activationEpoch: ${activationEpoch}`)
-
-  // get activation epoch
-  // const activationEpoch = await COM
-  // get latest epoch
-  // range in between
-  // getInflationReward for each epoch
+  delay()
   const currentEpoch = await CONNECTION.getEpochInfo()
-  // console.log(`currentEpoch: ${JSON.stringify(currentEpoch)}`)
-
   const epochDiff = currentEpoch.epoch - activationEpoch
   const rewardEpochs = Array.from({ length: epochDiff - 1 }, (v, k) => k + parseInt(activationEpoch) + 1)
-  console.log(`rewardEpochs: ${rewardEpochs}`)
+  console.log(`[getInfoForStakingAccount]: rewardEpochs: ${rewardEpochs}`)
 
-  const rawRewards = await Promise.all(
-    rewardEpochs
-      .map(async epoch => await CONNECTION.getInflationReward([publicKey], epoch))
-  )
+  const rawRewards = await rewardEpochs.reduce(async (previousPromise, epoch) => {
+    // delay()
+    const accumulator = await previousPromise;
+    console.log(`[getInfoForStakingAccount]: getting reward for ${address} epoch: ${epoch}`)
+    const reward = await CONNECTION.getInflationReward([publicKey], epoch);
+    return [...accumulator, reward];
+  }, Promise.resolve([] as any[]));
 
   const rewards = rawRewards
     .map(r => r[0])
@@ -111,18 +95,12 @@ export async function getStakingInfoForAddress(address: string): Promise<Staking
   console.log(`found the following staking accounts for address: ${address}`)
   stakeAccounts.forEach(sa => console.log(sa.pubkey.toString()))
 
+  const stakingInfos = await stakeAccounts.reduce(async (previousPromise, address) => {
+    const accumulator = await previousPromise;
+    const info = await getInfoForStakingAccount(address.pubkey.toString());
+    return [...accumulator, info];
+  }, Promise.resolve([] as StakingInfo[]));
 
-  // const stakingInfos = stakeAccounts
-  //   .map(address => () => getInfoForStakingAccount(address.pubkey.toString()))
-  //   .reduce((p, fn) => p.then(fn), Promise.resolve<StakingInfo[]>([] as StakingInfo[]))
-
-  // // await Promise.all(stakeAccounts.map(async address => await getInfoForStakingAccount(address.pubkey.toString())))
-  // return stakingInfos
-  // // return [await getInfoForStakingAccount("GcJhRHeuATxQdEq2HNWKSWFT6dJb1nccywcvE4y44Dxq")]
-
-  // TODO: this doesn't rate limit when using VPN
-  // try sleeping after 1 sec, https://github.com/hodgerpodger/staketaxcsv/commit/5e7678f16afa520b822c4ed8c7462125e18dcfe0
-  const stakingInfos = await Promise.all(stakeAccounts.map(async address => await getInfoForStakingAccount(address.pubkey.toString())))
   return stakingInfos
 }
 
