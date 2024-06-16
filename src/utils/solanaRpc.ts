@@ -11,7 +11,7 @@ const CONNECTION = new Connection('https://api.mainnet-beta.solana.com');
 const LAMPORTS_PER_SOL = 1000000000
 const delay = (ms: number = 1000) => new Promise(resolve => setTimeout(resolve, ms))
 
-async function getStakingAccounts(address: string) {
+export async function getStakingAccounts(address: string) {
   const publicKey = new PublicKey(address)
 
   // Get all accounts managed by the Stake Program
@@ -31,6 +31,13 @@ async function getStakingAccounts(address: string) {
   return stakeAccounts
 }
 
+export interface AccountInfo {
+  address: string
+  balance: number
+  stake: number
+  validator: string
+  activationEpoch: string
+}
 export interface StakingInfo {
   address: string
   balance: number
@@ -38,6 +45,56 @@ export interface StakingInfo {
   validator: string
   activationEpoch: string
   rewards: InflationReward[]
+}
+
+export async function getAccountInfo(address: string): Promise<AccountInfo> {
+  console.log(`[getAccountInfo]: looking up info for ${address}`)
+  const publicKey = new PublicKey(address)
+  const parsedAccountInfo = await CONNECTION.getParsedAccountInfo(publicKey)
+  const balance = parsedAccountInfo.value!.lamports / LAMPORTS_PER_SOL
+  const accountData: ParsedAccountData = parsedAccountInfo.value!.data as ParsedAccountData
+  const stakeInfo = accountData.parsed.info.stake
+  const stake = stakeInfo.delegation.stake / LAMPORTS_PER_SOL
+  const validator = stakeInfo.delegation.voter
+  const activationEpoch = stakeInfo.delegation.activationEpoch
+
+  return {
+    address,
+    balance,
+    stake,
+    validator,
+    activationEpoch
+  }
+}
+
+export async function getRewards(address: string, activationEpoch: number): Promise<InflationReward[]> {
+  console.log(`[getRewards]: looking up info for ${address}`)
+  const publicKey = new PublicKey(address)
+
+  const currentEpoch = await CONNECTION.getEpochInfo()
+  const epochDiff = currentEpoch.epoch - activationEpoch
+  const rewardEpochs = Array.from({ length: epochDiff - 1 }, (v, k) => k + activationEpoch + 1)
+  console.log(`[getRewards]: rewardEpochs: ${rewardEpochs}`)
+
+  const rawRewards = await rewardEpochs.reduce(async (previousPromise, epoch) => {
+    // delay()
+    const accumulator = await previousPromise;
+    console.log(`[getRewards]: getting reward for ${address} epoch: ${epoch}`)
+    const reward = await CONNECTION.getInflationReward([publicKey], epoch);
+    return [...accumulator, reward];
+  }, Promise.resolve([] as any[]));
+
+  const rewards = rawRewards
+    .map(r => r[0])
+    .map(reward => {
+      return {
+        ...reward,
+        amount: reward!.amount / LAMPORTS_PER_SOL,
+        postBalance: reward!.postBalance / LAMPORTS_PER_SOL,
+      }
+    })
+
+  return rewards
 }
 
 async function getInfoForStakingAccount(address: string): Promise<StakingInfo> {
@@ -127,7 +184,7 @@ export function aggregateRewards(data: StakingInfo[], address: string): StakingI
       stake: a.stake + b.stake,
       validator: a.validator,
       activationEpoch: Math.min(parseInt(a.activationEpoch), parseInt(b.activationEpoch)).toString(),
-      rewards: rewards
+      rewards: rewards.sort((a, b) => a.epoch - b.epoch)
     }
   });
 }
