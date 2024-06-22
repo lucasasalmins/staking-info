@@ -14,7 +14,7 @@ type DetailsProps = {
 }
 
 
-function LogItem({ text }) {
+export function LogItem({ text }) {
   return (
     <p className="text-tremor-content-strong dark:text-dark-tremor-content-strong font-medium">
       {text}
@@ -51,6 +51,7 @@ export default function Details({
     { key: "totalRewards", value: totalRewards },
     { key: "latestReward", value: latestReward.amount },
   ]
+
   return (
 
     <div

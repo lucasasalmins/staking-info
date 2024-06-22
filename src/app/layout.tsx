@@ -21,7 +21,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <AntdRegistry>{children}</AntdRegistry>
+          <AntdRegistry>
+            {children}
+          </AntdRegistry>
         </Providers>
         {/* <Dashboard> */}
         {/* </Dashboard> */}
